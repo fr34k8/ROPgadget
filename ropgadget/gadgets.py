@@ -436,14 +436,24 @@ class Gadgets(object):
             gadgets = [] # TODO
         elif arch == CS_ARCH_ARM:
             if self.__options.thumb or self.__options.rawMode == "thumb":
-                gadgets = [
-                               [br"\x00-\xff]{1}\xef", 2, 2] # FIXME: svc
-                          ]
+                if arch_endian == CS_MODE_BIG_ENDIAN:
+                    gadgets = [
+                               [br"\xdf[\x00-\xff]", 2, 2] # svc imm8
+                              ]
+                else:
+                    gadgets = [
+                               [br"[\x00-\xff]\xdf", 2, 2] # svc imm8
+                              ]
                 arch_mode = CS_MODE_THUMB
             else:
-                gadgets = [
-                               [br"\x00-\xff]{3}\xef", 4, 4] # FIXME: svc
-                          ]
+                if arch_endian == CS_MODE_BIG_ENDIAN:
+                    gadgets = [
+                               [br"[\x0f\x1f\x2f\x3f\x4f\x5f\x6f\x7f\x8f\x9f\xaf\xbf\xcf\xdf\xef][\x00-\xff]{3}", 4, 4] # svc{cond} imm24
+                              ]
+                else:
+                    gadgets = [
+                               [br"[\x00-\xff]{3}[\x0f\x1f\x2f\x3f\x4f\x5f\x6f\x7f\x8f\x9f\xaf\xbf\xcf\xdf\xef]", 4, 4] # svc{cond} imm24
+                              ]
                 arch_mode = CS_MODE_ARM
         elif arch == CS_ARCH_RISCV:
 
